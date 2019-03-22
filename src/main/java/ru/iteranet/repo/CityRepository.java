@@ -9,14 +9,14 @@ import ru.iteranet.entity.Country;
 import java.util.List;
 
 public interface CityRepository extends JpaRepository<City, Long> {
-    @Query("SELECT c FROM City c  WHERE c.name=(:name) AND c.country= (:country)")
-    List<City> findByNameAndCountry(@Param("name") String name, @Param("country") Country country);
+    @Query("SELECT c FROM City c INNER JOIN Country cn ON c.country = cn.id WHERE c.name=(:name) AND cn.name= (:country)")
+    List<City> findByNameAndCountry(@Param("name") String name, @Param("country") String country);
 
 
     @Query("SELECT c FROM City c  WHERE c.name=(:name)")
     List<City> findByName(@Param("name") String name);
 
 
-    @Query("SELECT c FROM City c  WHERE c.country= (:country)")
+    @Query("SELECT c FROM City c INNER JOIN Country cn ON c.country = cn.id  WHERE cn.name= (:country)")
     List<City> findByCountry(@Param("country") String country);
 }

@@ -77,8 +77,8 @@ public class CityRepositoryTest {
         repository.save(city2);
         repository.save(city3);
 
-        List<City> citiesVolgogradInRussia = repository.findByNameAndCountry("Volgograd", russia);
-        List<City> citiesVolgogradInUkraine = repository.findByNameAndCountry("Volgograd", ukraine);
+        List<City> citiesVolgogradInRussia = repository.findByNameAndCountry("Volgograd", russia.getName());
+        List<City> citiesVolgogradInUkraine = repository.findByNameAndCountry("Volgograd", ukraine.getName());
 
         assertEquals(1, citiesVolgogradInRussia.size());
         City foundVolgogradInRussia = citiesVolgogradInRussia.get(0);

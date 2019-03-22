@@ -19,7 +19,7 @@ public class CityController {
 
 
     @GetMapping("/city")
-    List<City> findByParams(@RequestParam(required = false) String name, @RequestParam(required = false) Country country) {
+    List<City> findByParams(@RequestParam(required = false) String name, @RequestParam(required = false) String country) {
         //return repository.findAll();
         List<City> loadedCities;
         if (name != null && country != null) {
@@ -28,7 +28,7 @@ public class CityController {
             if (name != null){
                 loadedCities = repository.findByName(name);
             } else {
-                loadedCities = repository.findByCountry(country.getName());
+                loadedCities = repository.findByCountry(country);
             }
             // TODO: сюда не доходит
             if (name == null && country == null){
