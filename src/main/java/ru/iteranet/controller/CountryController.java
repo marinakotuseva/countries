@@ -25,7 +25,7 @@ public class CountryController {
     @GetMapping("/country/{id}")
     Country findOne(@PathVariable Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new NotFoundException());
+                .orElseThrow(() -> new NotFoundException(id));
     }
 
     @ResponseStatus(HttpStatus.CREATED)

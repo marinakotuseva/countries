@@ -1,6 +1,7 @@
 package ru.iteranet.entity;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "country_id"})})
@@ -11,6 +12,7 @@ public class City {
     @Id
     public long id;
     @Column(length=255)
+    @NotNull
     private String name;
     @ManyToOne(cascade = CascadeType.ALL)
     //@JoinColumn(name = "city_id")

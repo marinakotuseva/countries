@@ -1,10 +1,18 @@
 package ru.iteranet;
 
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
+import ru.iteranet.controller.CityController;
 import ru.iteranet.entity.City;
 import ru.iteranet.entity.Country;
 import ru.iteranet.repo.CityRepository;
@@ -12,14 +20,24 @@ import ru.iteranet.repo.CityRepository;
 import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
+import static io.restassured.RestAssured.*;
+import static io.restassured.matcher.RestAssuredMatchers.*;
+import static org.hamcrest.Matchers.*;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CityRepositoryTest {
 
     @Autowired
     private CityRepository repository;
+//    @LocalServerPort
+//    private int port;
 
+//    @Before
+//    public void setUp() throws Exception {
+//        RestAssured.port = port;
+//    }
     @Test
     public void can_find_city_after_creation() {
         Country russia = new Country("Russia");
@@ -77,8 +95,8 @@ public class CityRepositoryTest {
         repository.save(city2);
         repository.save(city3);
 
-        List<City> citiesVolgogradInRussia = repository.findByNameAndCountry("Volgograd", russia.getName());
-        List<City> citiesVolgogradInUkraine = repository.findByNameAndCountry("Volgograd", ukraine.getName());
+        List<City> citiesVolgogradInRussia = repository.findByNameAndCountry("Volgograd", russia);
+        List<City> citiesVolgogradInUkraine = repository.findByNameAndCountry("Volgograd", ukraine);
 
         assertEquals(1, citiesVolgogradInRussia.size());
         City foundVolgogradInRussia = citiesVolgogradInRussia.get(0);
@@ -118,12 +136,10 @@ public class CityRepositoryTest {
         repository.save(city2);
         repository.save(city3);
 
-        List<City> citiesInRussia = repository.findByCountry(russia.getName());
+        List<City> citiesInRussia = repository.findByCountry(russia);
 
         assertEquals(2, citiesInRussia.size());
         assertEquals("Volgograd", citiesInRussia.get(0).getName());
         assertEquals("Samara", citiesInRussia.get(1).getName());
     }
-
-    //TODO: exceptions
 }

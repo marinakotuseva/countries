@@ -10,17 +10,5 @@ public class Application {
         SpringApplication.run(Application.class, args);
     }
 
-//    // init bean to insert 3 books into h2 database.
-//    @Bean
-//    CommandLineRunner initDatabase(CityRepository repository) {
-//        return args -> {
-//            Country c = new Country("Country1");
-//            City city = new City("City1", c );
-//            repository.save(city);
-////            repository.save(new City("City2", new Country("Country2")));
-////            repository.save(new City("City3", new Country("Country3")));
-//        };
-//    }
-
 }
 
