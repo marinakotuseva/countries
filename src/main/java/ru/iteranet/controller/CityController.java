@@ -29,12 +29,12 @@ public class CityController {
         }
         List<City> loadedCities;
         if (name != null && country != null) {
-            loadedCities = repository.findByNameAndCountry(name, country);
+            loadedCities = repository.findByNameAndCountry(name, country.getName());
         } else {
             if (name != null){
                 loadedCities = repository.findByName(name);
             } else {
-                loadedCities = repository.findByCountry(country);
+                loadedCities = repository.findByCountry(country.getName());
             }
             // TODO: сюда не доходит
             if (name == null && country == null){
@@ -105,12 +105,9 @@ public class CityController {
         return repository.findById(id)
                 .map(x -> {
                     x.setName(city.getName());
-                    //x.setAuthor(city.getAuthor());
-                    //x.setPrice(city.getPrice());
                     return repository.save(x);
                 })
                 .orElseGet(() -> {
-                    //city.setId(id);
                     return repository.save(city);
                 });
     }
