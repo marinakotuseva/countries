@@ -1,35 +1,35 @@
 package ru.iteranet.entity;
 
 import javax.persistence.*;
-import java.util.Set;
+import javax.validation.constraints.NotNull;
+import java.util.Objects;
 
 @Entity
+@Table(name="countries")
 public class Country {
-    private static int counter = 0;
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     @Id
-    public long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @NotNull
     @Column(length=255,unique=true)
     private String name;
 
-    @OneToMany(cascade = CascadeType.PERSIST, mappedBy = "country")
-    Set<City> cities;
 
     public Country() {
-        //this.id = counter++;
     }
 
     public Country (String name){
-        //this.id = counter++;
         this.name = name;
     }
-    public void setCities(Set<City> cities) {
-        this.cities = cities;
+
+    public long getId() {
+        return id;
     }
 
-    @Override
-    public String toString() {
-        return name;
+    public void setId(long id) {
+        this.id = id;
     }
 
     public void setName(String name) {
@@ -38,5 +38,28 @@ public class Country {
 
     public String getName() {
         return name;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Country{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Country country = (Country) o;
+        return id == country.id &&
+                Objects.equals(name, country.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name);
     }
 }

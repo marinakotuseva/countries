@@ -2,34 +2,28 @@ package ru.iteranet.entity;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "country_id"})})
+@Table(name="cities")
 public class City {
 
-    private static int counter = 1;
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    public long id;
-    @Column(length=255)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
     @NotNull
+    @Column(length=255,unique=true)
     private String name;
-    @ManyToOne(cascade = CascadeType.ALL)
-    //@JoinColumn(name = "city_id")
+
+    @NotNull
+    @ManyToOne
     private Country country;
 
-
     public City() {
-        //this.id = counter++;
     }
 
-    public City(String name) {
-        //this.id = counter++;
-        this.name = name;
-    }
-
-    public City(String name, Country country) {
-        //this.id = counter++;
+    public City(@NotNull String name, @NotNull Country country) {
         this.name = name;
         this.country = country;
     }
@@ -50,16 +44,11 @@ public class City {
         this.name = name;
     }
 
+    public Country getCountry() {
+        return country;
+    }
+
     public void setCountry(Country country) {
         this.country = country;
-    }
-
-    public String getCountry() {
-        return country.getName();
-    }
-
-    @Override
-    public String toString() {
-        return name;
     }
 }
