@@ -3,7 +3,6 @@ package ru.iteranet.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.iteranet.entity.City;
-import ru.iteranet.entity.Country;
 import ru.iteranet.exceptions.IncorrectNameException;
 import ru.iteranet.exceptions.RecordAlreadyExistsException;
 import ru.iteranet.exceptions.RecordNotFoundException;
@@ -49,8 +48,7 @@ public class CityController {
         if (country == null){
             throw new IncorrectNameException();
         }
-        Country loadedCountry = countryRepository.findByName(country);
-        return cityRepository.findByCountry(loadedCountry);
+        return cityRepository.findByCountry(countryRepository.findByName(country));
     }
 
     // Find by ID
@@ -64,7 +62,7 @@ public class CityController {
     @PostMapping("/city")
     City create(@RequestBody City city) throws StringTooLongException {
         String name = city.getName();
-        if (name == null || name == "") {
+        if (name == null || name.equals("")) {
             throw new IncorrectNameException();
         }
         if (name.length() > MAX_PARAM_NAME_LENGTH) {
@@ -83,8 +81,7 @@ public class CityController {
         City existingCity = cityRepository.findById(id)
                 .orElseThrow(() -> new RecordNotFoundException(id));
         existingCity.setName(city.getName());
-        cityRepository.save(existingCity);
-        return existingCity;
+        return cityRepository.save(existingCity);
     }
 
     // Delete

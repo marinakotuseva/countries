@@ -2,34 +2,34 @@ package ru.iteranet.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.iteranet.entity.City;
 import ru.iteranet.entity.Country;
-import ru.iteranet.exceptions.IncorrectNameException;
-import ru.iteranet.exceptions.RecordAlreadyExistsException;
-import ru.iteranet.exceptions.RecordNotFoundException;
-import ru.iteranet.exceptions.StringTooLongException;
+import ru.iteranet.exceptions.*;
+import ru.iteranet.repo.CityRepository;
 import ru.iteranet.repo.CountryRepository;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping(path = "/api")
 public class CountryController {
 
     private CountryRepository countryRepository;
+    private CityRepository cityRepository;
     private static final int MAX_PARAM_NAME_LENGTH = 255;
 
     @Autowired
-    public CountryController(CountryRepository repository) {
-        this.countryRepository = repository;
+    public CountryController(CountryRepository countryRepository, CityRepository cityRepository) {
+        this.countryRepository = countryRepository;
+        this.cityRepository = cityRepository;
     }
 
-    // Read all
     @GetMapping("/country")
     public List<Country> findAll() {
         return countryRepository.findAll();
     }
 
-    // Find by name
     @GetMapping(value = "/country", params = "name")
     public Country findByName(@RequestParam String name) {
         if (name == null){
@@ -38,18 +38,16 @@ public class CountryController {
         return countryRepository.findByName(name);
     }
 
-    // Fund by id
     @GetMapping("/country/{id}")
     public Country findByID(@PathVariable Long id) {
         return countryRepository.findById(id)
                 .orElseThrow(() -> new RecordNotFoundException(id));
     }
 
-    // Create new
     @PostMapping("/country")
     public Country create(@RequestBody Country country) throws StringTooLongException {
         String name = country.getName();
-        if (name == null || name == "") {
+        if (name == null || name.equals("")) {
             throw new IncorrectNameException();
         }
         if (name.length() > MAX_PARAM_NAME_LENGTH) {
@@ -62,7 +60,6 @@ public class CountryController {
         return countryRepository.save(country);
     }
 
-    // Update
     @PostMapping("/country/{id}")
     public Country update(@RequestBody Country country, @PathVariable Long id) {
         Country existingCountry = countryRepository.findById(id)
@@ -72,13 +69,17 @@ public class CountryController {
         return existingCountry;
     }
 
-    // Delete
     @DeleteMapping("/country/{id}")
-    public void delete(@PathVariable Long id) {
-        countryRepository.findById(id)
+    public void delete(@PathVariable Long id) throws CantDeleteCountryInUseException {
+        // Check country exists
+        Country country = countryRepository.findById(id)
                 .orElseThrow(() -> new RecordNotFoundException(id));
-
-        // TODO: check if country has cities
+        // Check it has no cities
+        Set<City> cities = cityRepository.findByCountry(country);
+        System.out.println(cities);
+        if (cities.size() > 0) {
+            throw new CantDeleteCountryInUseException(country.getName());
+        }
         countryRepository.deleteById(id);
     }
 }

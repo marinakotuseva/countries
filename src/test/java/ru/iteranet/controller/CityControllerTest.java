@@ -41,6 +41,7 @@ public class CityControllerTest {
 
         assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
 
+
         Type listType = new TypeToken<ArrayList<Country>>() {
         }.getType();
         List<Country> cityList = new Gson().fromJson(response.getBody(), listType);

@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
+import ru.iteranet.entity.City;
 import ru.iteranet.entity.Country;
 
 import java.lang.reflect.Type;
@@ -171,6 +172,7 @@ public class CountryControllerTest {
         }.getType();
         Country createdCountry = new Gson().fromJson(responseAfterCreation.getBody(), type);
         assertThat(createdCountry.getName(), equalTo(country.getName()));
+        System.out.println(responseAfterCreation);
 
 
         // Delete
@@ -178,12 +180,54 @@ public class CountryControllerTest {
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Country.class);
-
+        System.out.println(responseDelete);
         assertThat(responseDelete.getStatusCode(), equalTo(HttpStatus.OK));
 
         // Check that no longer exists
         ResponseEntity<String> response = testRestTemplate.getForEntity("/api/country/" + createdCountry.getId(), String.class);
         assertThat(response.getStatusCode(), equalTo(HttpStatus.INTERNAL_SERVER_ERROR));
+
+    }
+
+    @Test
+    public void testCantDeleteCountryWithCity() {
+        String countryName = "Страна_для_удаления2";
+        String cityName = "Город_для_удаления2";
+
+        // Create country to delete
+        Country country = new Country(countryName);
+        ResponseEntity<String> responseAfterCreation = testRestTemplate.postForEntity("/api/country", country, String.class);
+        Type type = new TypeToken<Country>() {
+        }.getType();
+        Country createdCountry = new Gson().fromJson(responseAfterCreation.getBody(), type);
+        assertThat(responseAfterCreation.getStatusCode(), equalTo(HttpStatus.OK));
+
+        // Create city with it
+        City city = new City(cityName, createdCountry);
+        ResponseEntity<String> responseAfterCreation2 = testRestTemplate.postForEntity("/api/city", city, String.class);
+        assertThat(responseAfterCreation2.getStatusCode(), equalTo(HttpStatus.OK));
+        Country createdCity= new Gson().fromJson(responseAfterCreation2.getBody(), type);
+
+        // Delete
+        ResponseEntity<Country> responseDelete = testRestTemplate.exchange("/api/country/" + createdCountry.getId(),
+                HttpMethod.DELETE,
+                HttpEntity.EMPTY,
+                Country.class);
+        assertThat(responseDelete.getStatusCode(), equalTo(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        // Delete city and country
+        ResponseEntity<City> responseDeleteCity = testRestTemplate.exchange("/api/city/" + createdCity.getId(),
+                HttpMethod.DELETE,
+                HttpEntity.EMPTY,
+                City.class);
+        assertThat(responseDeleteCity.getStatusCode(), equalTo(HttpStatus.OK));
+
+        ResponseEntity<Country> responseDeleteCountry = testRestTemplate.exchange("/api/country/" + createdCountry.getId(),
+                HttpMethod.DELETE,
+                HttpEntity.EMPTY,
+                Country.class);
+        System.out.println(responseDeleteCountry);
+        assertThat(responseDeleteCountry.getStatusCode(), equalTo(HttpStatus.OK));
 
     }
 
