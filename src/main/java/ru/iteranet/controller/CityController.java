@@ -1,122 +1,97 @@
 package ru.iteranet.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.iteranet.entity.City;
-import ru.iteranet.entity.Country;
-import ru.iteranet.exceptions.IDIsNotInteger;
+import ru.iteranet.exceptions.IncorrectNameException;
+import ru.iteranet.exceptions.RecordAlreadyExistsException;
+import ru.iteranet.exceptions.RecordNotFoundException;
 import ru.iteranet.exceptions.StringTooLongException;
-import ru.iteranet.exceptions.NotFoundException;
 import ru.iteranet.repo.CityRepository;
+import ru.iteranet.repo.CountryRepository;
 
-import javax.validation.Valid;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 @RestController
+@RequestMapping(path = "/api")
 public class CityController {
 
-    @Autowired
-    private CityRepository repository;
     private static final int MAX_PARAM_NAME_LENGTH = 255;
+    private CityRepository cityRepository;
+    @Autowired
+    private CountryRepository countryRepository;
 
+    @Autowired
+    public CityController(CityRepository repository) {
+        this.cityRepository = repository;
+    }
 
-
+    // Find all
     @GetMapping("/city")
-    List<City> findByParams(@RequestParam(required = false) String name, @RequestParam(required = false) Country country) {
-        if (name.length() > MAX_PARAM_NAME_LENGTH) {
-            throw new StringTooLongException(name, MAX_PARAM_NAME_LENGTH);
+    public List<City> findAll() {
+        return cityRepository.findAll();
+    }
+
+    // Find by Name
+    @GetMapping(value = "/city", params = "name")
+    public City findByName(@RequestParam String name) {
+        if (name == null){
+            throw new IncorrectNameException();
         }
-        List<City> loadedCities;
-        if (name != null && country != null) {
-            loadedCities = repository.findByNameAndCountry(name, country.getName());
-        } else {
-            if (name != null){
-                loadedCities = repository.findByName(name);
-            } else {
-                loadedCities = repository.findByCountry(country.getName());
-            }
-            // TODO: сюда не доходит
-            if (name == null && country == null){
-                throw new NotFoundException();
-            }
+        return cityRepository.findByName(name);
+    }
+
+    // Find by Country
+    @GetMapping(value = "/city", params = "country")
+    public Set<City> findByCountry(@RequestParam String country) {
+        if (country == null){
+            throw new IncorrectNameException();
         }
-        return loadedCities;
+        return cityRepository.findByCountry(countryRepository.findByName(country));
     }
 
     // Find by ID
     @GetMapping("/city/{id}")
-    City findOne(@PathVariable Long id) {
-        System.out.println(id.getClass().toString());
-        // TODO
-        if (!(id instanceof Long)){
-            throw new IDIsNotInteger(id);
-        }
-        return repository.findById(id)
-                .orElseThrow(() -> new NotFoundException(id));
+    City findByID(@PathVariable Long id) {
+        return cityRepository.findById(id)
+                .orElseThrow(() -> new RecordNotFoundException(id));
     }
 
     // Create new
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/city")
-    City create(@Valid @RequestBody City cityJson) {
-
-        // TODO check if Json
-//        if (!(cityJson instanceof City)){
-//            throw new RuntimeException ("Not city");
-//        }
-//        if (!cityJson.isNull("URL"))
-//        {
-//            // Note, not `getJSONArray` or any of that.
-//            // This will give us whatever's at "URL", regardless of its type.
-//            Object item = cityJson.get("URL");
-//
-//            // `instanceof` tells us whether the object can be cast to a specific type
-//            if (item instanceof JSONArray)
-//            {
-//                // it's an array
-//                JSONArray urlArray = (JSONArray) item;
-//                // do all kinds of JSONArray'ish things with urlArray
-//            }
-//            else
-//            {
-//                // if you know it's either an array or an object, then it's an object
-//                JSONObject urlObject = (JSONObject) item;
-//                // do objecty stuff with urlObject
-//            }
-//        }
-//        else
-//        {
-//            // URL is null/undefined
-//            // oh noes
-//        }
-
-        if (cityJson.getName().length() > MAX_PARAM_NAME_LENGTH) {
-            throw new StringTooLongException(cityJson.getName(), MAX_PARAM_NAME_LENGTH);
+    City create(@RequestBody City city) throws StringTooLongException {
+        String name = city.getName();
+        if (name == null || name.equals("")) {
+            throw new IncorrectNameException();
         }
-        return repository.save(cityJson);
+        if (name.length() > MAX_PARAM_NAME_LENGTH) {
+            throw new StringTooLongException(city.getName(), MAX_PARAM_NAME_LENGTH);
+        }
+        City existingCity = cityRepository.findByName(name);
+        if (existingCity != null) {
+            throw new RecordAlreadyExistsException(name);
+        }
+        return cityRepository.save(city);
     }
 
-    // Save or update
-    @PutMapping("/city/{id}")
-    City saveOrUpdate(@RequestBody City city, @PathVariable Long id) {
-        // TODO check id format
-
-        return repository.findById(id)
-                .map(x -> {
-                    x.setName(city.getName());
-                    return repository.save(x);
-                })
-                .orElseGet(() -> {
-                    return repository.save(city);
-                });
+    // Update
+    @PostMapping("/city/{id}")
+    public City update(@RequestBody City city, @PathVariable Long id) {
+        City existingCity = cityRepository.findById(id)
+                .orElseThrow(() -> new RecordNotFoundException(id));
+        existingCity.setName(city.getName());
+        return cityRepository.save(existingCity);
     }
 
+    // Delete
     @DeleteMapping("/city/{id}")
-    void delete(@PathVariable Long id) {
+    public void delete(@PathVariable Long id) {
+        cityRepository.findById(id)
+                .orElseThrow(() -> new RecordNotFoundException(id));
 
-        // TODO check id format
-        // TODO check if country with city exists
-        repository.deleteById(id);
+        cityRepository.deleteById(id);
     }
+
+
 }
